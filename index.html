@@ -107,7 +107,6 @@
   }
   .yh-target.visible { opacity: 1; }
   .yh-target.found { opacity: 0 !important; }
-  .yh-stand { position: absolute; left: 0; top: 58px; width: 88px; height: 64px; overflow: visible; }
   .yh-face {
     position: absolute; inset: 0; border-radius: 50%;
     background: radial-gradient(circle closest-side,
@@ -141,10 +140,9 @@
 
   /* POV bow */
   #yh-bow {
-    position: absolute; left: 0; right: 0; bottom: 0;
-    width: 100%; height: 50%;
-    overflow: visible;
-    z-index: 3; pointer-events: none;
+    position: absolute; left: 0; top: 0;
+    width: 100%; height: 100%;
+    z-index: 2; pointer-events: none;
     filter: drop-shadow(0 8px 14px rgba(0,0,0,0.45));
   }
   #yh-bow-arrow { transition: opacity .25s ease; }
@@ -270,11 +268,6 @@
     <div id="yh-progress-wrap"><div id="yh-progress-track"><div id="yh-progress-fill"></div></div></div>
     <div id="yh-field">
       <div id="yh-marker" class="yh-target">
-        <svg class="yh-stand" viewBox="0 0 88 64">
-          <line x1="44" y1="0" x2="44" y2="58" stroke="#4E3520" stroke-width="5" stroke-linecap="round"/>
-          <line x1="30" y1="0" x2="12" y2="62" stroke="#7A5431" stroke-width="6" stroke-linecap="round"/>
-          <line x1="58" y1="0" x2="76" y2="62" stroke="#7A5431" stroke-width="6" stroke-linecap="round"/>
-        </svg>
         <div class="yh-face" id="yh-face"></div>
         <div class="yh-target-num" id="yh-target-num">1</div>
       </div>
@@ -292,64 +285,62 @@
       <div id="yh-hint" class="yh-hidden-hint"><div class="yh-chevron">➜</div><div class="yh-hint-label">turn</div></div>
     </div>
 
-    <!-- first-person bow, held upright like an archer -->
-    <svg id="yh-bow" viewBox="0 0 400 440" preserveAspectRatio="xMidYMax meet">
+    <!-- first-person bow: bow arm reaching in from bottom-left, bow held upright -->
+    <svg id="yh-bow" viewBox="0 0 400 800" preserveAspectRatio="xMidYMax slice">
       <defs>
-        <pattern id="yhCamo" width="70" height="70" patternUnits="userSpaceOnUse" patternTransform="rotate(-25)">
-          <rect width="70" height="70" fill="#7A6A44"/>
-          <path d="M4,10 q14,-8 24,2 q8,10 -6,14 q-14,4 -18,-6z" fill="#4B3A24"/>
-          <path d="M38,30 q16,-6 26,6 q4,12 -12,12 q-16,-2 -14,-18z" fill="#5A5B34"/>
-          <path d="M10,46 q10,-6 18,2 q6,10 -8,12 q-12,0 -10,-14z" fill="#3E2F1D"/>
-          <path d="M46,2 q10,-2 14,6 q-2,8 -12,4z" fill="#A08A5C"/>
-          <path d="M28,58 q10,-4 16,4 q-4,8 -14,4z" fill="#A08A5C"/>
-        </pattern>
-        <linearGradient id="yhLimb" x1="0" x2="1" y1="0" y2="0">
-          <stop offset="0" stop-color="#8A3F12"/>
-          <stop offset="0.45" stop-color="#E88A2E"/>
-          <stop offset="1" stop-color="#A24E18"/>
+        <linearGradient id="yhSkin" x1="0" x2="1" y1="0" y2="0">
+          <stop offset="0" stop-color="#E9B892"/>
+          <stop offset="0.45" stop-color="#F8D6BA"/>
+          <stop offset="1" stop-color="#E3AC84"/>
+        </linearGradient>
+        <linearGradient id="yhLimbW" x1="0" x2="1" y1="0" y2="0">
+          <stop offset="0" stop-color="#C9CDD2"/>
+          <stop offset="0.4" stop-color="#FFFFFF"/>
+          <stop offset="1" stop-color="#D8DCE0"/>
+        </linearGradient>
+        <linearGradient id="yhRiser" x1="0" x2="1" y1="0" y2="0">
+          <stop offset="0" stop-color="#A5121A"/>
+          <stop offset="0.45" stop-color="#E8313A"/>
+          <stop offset="1" stop-color="#9A0F16"/>
         </linearGradient>
       </defs>
 
-      <!-- bow arm (camo sleeve) coming in from the bottom right -->
-      <path d="M170,226 L440,350 L440,480 L188,272 Z" fill="url(#yhCamo)"/>
-      <path d="M170,226 L188,272" stroke="#2E2416" stroke-width="3" opacity="0.35"/>
+      <!-- string (drawn back to the archer's face, just out of frame) -->
+      <polyline id="yh-bow-string" points="300,-30 420,860 286,840" fill="none" stroke="rgba(245,240,230,0.75)" stroke-width="1.6"/>
 
       <!-- limbs -->
-      <path d="M149,192 Q118,90 70,-44" fill="none" stroke="url(#yhLimb)" stroke-width="10" stroke-linecap="round"/>
-      <path d="M150,276 Q162,382 186,486" fill="none" stroke="url(#yhLimb)" stroke-width="10" stroke-linecap="round"/>
+      <path d="M271,470 C272,320 275,160 281,50 Q284,-2 302,-32" fill="none" stroke="url(#yhLimbW)" stroke-width="13" stroke-linecap="round"/>
+      <path d="M268,664 C269,720 272,780 286,842" fill="none" stroke="url(#yhLimbW)" stroke-width="13" stroke-linecap="round"/>
+      <path d="M275,330 L278,250" stroke="#2B2B2B" stroke-width="5" stroke-linecap="round" opacity="0.55"/>
       <!-- riser -->
-      <path d="M146,184 C160,210 160,252 151,282" fill="none" stroke="#4A2C16" stroke-width="17" stroke-linecap="round"/>
-      <path d="M150,190 C161,212 161,248 154,276" fill="none" stroke="#7A4E2A" stroke-width="4" stroke-linecap="round" opacity="0.7"/>
-      <!-- arrow shelf -->
-      <path d="M145,212 q8,-6 14,0" fill="none" stroke="#2C1A0C" stroke-width="4" stroke-linecap="round"/>
+      <path d="M270,452 C278,500 278,610 268,678" fill="none" stroke="url(#yhRiser)" stroke-width="24" stroke-linecap="round"/>
+      <path d="M262,470 L262,500" stroke="#6E0A0F" stroke-width="3" stroke-linecap="round"/>
+      <!-- arrow rest -->
+      <path d="M252,519 q9,-6 16,0" fill="none" stroke="#1E1E1E" stroke-width="4" stroke-linecap="round"/>
 
-      <!-- bow hand (leather glove) gripping the riser -->
-      <g id="yh-bow-hand" transform="translate(-27 0)">
-        <path d="M168,226 q22,-10 44,2 q10,6 8,22 q-2,18 -14,26 q-18,8 -34,0 q-10,-8 -10,-24 q0,-18 6,-26z" fill="#6B4424"/>
-        <path d="M204,232 q10,4 12,12 M204,246 q10,4 11,12 M200,260 q9,4 9,10" fill="none" stroke="#3E2512" stroke-width="3" stroke-linecap="round"/>
-        <path d="M170,236 q-4,10 0,20" fill="none" stroke="#8C5A30" stroke-width="3" stroke-linecap="round" opacity="0.8"/>
-        <path d="M190,272 q14,4 24,-4 l6,14 q-16,10 -34,4z" fill="#4E3018"/>
+      <!-- bow arm: fair skin, with a black arm guard -->
+      <path d="M92,830 L246,598 L288,626 L238,830 Z" fill="url(#yhSkin)"/>
+      <path d="M92,830 L246,598" stroke="#D39C74" stroke-width="3" opacity="0.6"/>
+      <polygon points="125,776 245,782 262,714 177,699" fill="#1C1C1C"/>
+      <g stroke="#0A0A0A" stroke-width="8" stroke-linecap="round">
+        <line x1="134" y1="752" x2="258" y2="763"/>
+        <line x1="152" y1="726" x2="262" y2="739"/>
+        <line x1="168" y1="704" x2="266" y2="720"/>
       </g>
+      <g fill="#6A6A6A"><rect x="228" y="756" width="10" height="7" rx="1.5"/><rect x="238" y="732" width="10" height="7" rx="1.5"/><rect x="246" y="712" width="10" height="7" rx="1.5"/></g>
 
-      <!-- string -->
-      <polyline id="yh-bow-string" points="70,-44 168,330 186,486" fill="none" stroke="#EDE6D3" stroke-width="1.8" stroke-linejoin="round"/>
-
+      <!-- bow hand gripping the riser -->
+      <g id="yh-bow-hand">
+        <path d="M240,580 q14,-22 40,-18 q22,6 24,30 q2,26 -14,40 q-18,14 -38,6 q-18,-10 -18,-30 q0,-16 6,-28z" fill="url(#yhSkin)"/>
+        <path d="M246,584 q14,-16 34,-12 q8,2 10,10" fill="none" stroke="#D39C74" stroke-width="3" stroke-linecap="round"/>
+        <path d="M288,590 q8,6 8,14 M286,606 q7,6 6,14 M280,622 q6,4 4,12" fill="none" stroke="#CF9670" stroke-width="2.6" stroke-linecap="round"/>
+      </g>
       <!-- loaded arrow (positions set by script) -->
       <g id="yh-bow-arrow">
-        <polygon id="yh-fl1" points="0,0 0,0 0,0 0,0" fill="#D4E83C"/>
-        <polygon id="yh-fl2" points="0,0 0,0 0,0 0,0" fill="#B8CC2A"/>
-        <line id="yh-shaft" x1="0" y1="0" x2="0" y2="0" stroke="#A8662E" stroke-width="3.6" stroke-linecap="round"/>
-        <polygon id="yh-head" points="0,0 0,0 0,0" fill="#A9B3B8" stroke="#6E787D" stroke-width="1"/>
+        <polygon id="yh-shaft" points="0,0 0,0 0,0 0,0" fill="#5B4BC4"/>
+        <polygon id="yh-head" points="0,0 0,0 0,0" fill="#B7C0C6" stroke="#6E787D" stroke-width="1"/>
       </g>
 
-      <!-- draw hand (shooting glove) holding the string -->
-      <g id="yh-draw-hand" transform="translate(168 330)">
-        <path d="M-22,14 L20,20 L14,220 L-78,200 Z" fill="url(#yhCamo)"/>
-        <path d="M-24,-16 q22,-12 44,-2 q8,8 6,22 q-2,14 -14,20 q-20,6 -34,-2 q-10,-8 -10,-20 q0,-12 8,-18z" fill="#6B4424"/>
-        <path d="M-20,-4 q8,-4 16,0 M-18,6 q8,-4 16,0" fill="none" stroke="#3E2512" stroke-width="3" stroke-linecap="round"/>
-        <path d="M8,-14 q10,2 12,12" fill="none" stroke="#8C5A30" stroke-width="3" stroke-linecap="round" opacity="0.8"/>
-        <rect x="-26" y="16" width="46" height="10" rx="4" fill="#4E3018"/>
-      </g>
     </svg>
 
     <button id="yh-shoot" aria-label="Shoot"><span class="ic">🏹</span>Shoot</button>
@@ -731,11 +722,10 @@
   }
 
   // ================= Bow: draw, release, shoot =================
-  // Bow geometry (SVG units). String tips, arrow rest, and the nock at rest / full draw.
-  const BOW_TOP = [70,-44], BOW_BOT = [186,486], REST = [152,206];
-  const NOCK0 = [168,330], NOCK1 = [205,424];
-  const drawHand = $('yh-draw-hand');
-  const shaftEl = $('yh-shaft'), headEl = $('yh-head'), fl1 = $('yh-fl1'), fl2 = $('yh-fl2');
+  // Bow geometry (SVG units). String tips, arrow rest, and the nock (off-screen) at rest / full draw.
+  const BOW_TOP = [302,-32], BOW_BOT = [286,842], REST = [260,514];
+  const NOCK0 = [410,850], NOCK1 = [446,930];
+  const shaftEl = $('yh-shaft'), headEl = $('yh-head');
   let arrowTip = [0,0];
   const P = (p) => p[0].toFixed(1) + ',' + p[1].toFixed(1);
   function updateBow(){
@@ -745,17 +735,11 @@
     const vx = REST[0]-N[0], vy = REST[1]-N[1], len = Math.hypot(vx, vy);
     const u = [vx/len, vy/len], pp = [-u[1], u[0]];
     const at = (k, s) => [N[0] + u[0]*k + pp[0]*(s||0), N[1] + u[1]*k + pp[1]*(s||0)];
-    const tipK = len + 70 - 40*d;
+    const tipK = len + 46 - 30*d;
     arrowTip = at(tipK);
-    shaftEl.setAttribute('x1', N[0]); shaftEl.setAttribute('y1', N[1]);
-    const sEnd = at(tipK - 12);
-    shaftEl.setAttribute('x2', sEnd[0]); shaftEl.setAttribute('y2', sEnd[1]);
-    headEl.setAttribute('points', [arrowTip, at(tipK-18, 6), at(tipK-18, -6)].map(P).join(' '));
-    fl1.setAttribute('points', [at(20,0), at(60,0), at(52,10), at(26,10)].map(P).join(' '));
-    fl2.setAttribute('points', [at(20,0), at(60,0), at(52,-10), at(26,-10)].map(P).join(' '));
+    shaftEl.setAttribute('points', [at(0,5), at(tipK-14,1.8), at(tipK-14,-1.8), at(0,-5)].map(P).join(' '));
+    headEl.setAttribute('points', [arrowTip, at(tipK-18, 4.5), at(tipK-18, -4.5)].map(P).join(' '));
     bowArrow.style.opacity = bow.loaded ? '1' : '0';
-    const sc = 1 + 0.12*d;
-    drawHand.setAttribute('transform', 'translate(' + N[0].toFixed(1) + ' ' + N[1].toFixed(1) + ') rotate(-14) scale(' + sc.toFixed(3) + ')');
     if (d >= 1){
       const jx = (Math.random()-0.5)*1.4, jy = (Math.random()-0.5)*1.4;
       bowSvg.style.transform = 'translate(' + jx.toFixed(2) + 'px,' + jy.toFixed(2) + 'px)';
