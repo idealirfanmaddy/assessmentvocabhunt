@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>Assessment Vocabulary AR Hunt</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+  html, body {
+    margin: 0; padding: 0;
+    width: 100%; height: 100%;
+    background: #0E211B;
+    overscroll-behavior: none;
+  }
+  #yhapp * { box-sizing: border-box; }
+  #yhapp {
+    --forest: #17332A;
+    --sage: #5FAE8C;
+    --sage-light: #8FD1B4;
+    --tan: #C99A5B;
+    --tan-light: #E8C78A;
+    --cream: #F7F3E9;
+    --coral: #E4694A;
+    --gold: #EBC868;
+    position: relative;
+    width: 100vw;
+    width: 100dvw;
+    margin: 0;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    background: linear-gradient(160deg, var(--forest), #0E211B);
+    font-family: 'Inter', sans-serif;
+    color: var(--cream);
+    isolation: isolate;
+    -webkit-user-select: none; user-select: none;
+    -webkit-touch-callout: none;
+  }
+  #yhapp h1, #yhapp h2, #yhapp .display { font-family: 'Baloo 2', sans-serif; }
+
+  /* ---------- layered backgrounds ---------- */
+  #yh-video {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover; z-index: 0; opacity: 0.9;
+  }
+  #yh-noise-bg {
+    position: absolute; inset: 0; z-index: 0;
+    background:
+      radial-gradient(circle at 20% 20%, rgba(95,174,140,0.35), transparent 55%),
+      radial-gradient(circle at 80% 70%, rgba(201,154,91,0.3), transparent 55%),
+      linear-gradient(160deg, #1B3A30, #0E211B);
+  }
+  #yh-scrim {
+    position: absolute; inset: 0; z-index: 1;
+    background: linear-gradient(180deg, rgba(14,33,27,0.55) 0%, rgba(14,33,27,0.05) 22%, rgba(14,33,27,0.05) 70%, rgba(14,33,27,0.75) 100%);
+    pointer-events: none;
+  }
+
+  /* ---------- screens ---------- */
+  .yh-screen {
+    position: absolute; top: 0; bottom: 0; left: 50%;
+    z-index: 2;
+    transform: translateX(-50%);
+    width: 100%; max-width: 480px;
+    display: flex; flex-direction: column;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .yh-hidden { display: none !important; }
+
+  /* intro */
+  #yh-intro { padding: 30px 26px 26px; justify-content: space-between; overflow-y: auto; }
+  .yh-eyebrow { display:inline-block; background: var(--sage); color: var(--forest); font-weight:700; font-size:12px; letter-spacing:0.06em; padding:6px 12px; border-radius:100px; text-transform:uppercase; }
+  #yh-intro h1 { font-size: 34px; margin: 14px 0 4px; line-height: 1.05; color: var(--cream); }
+  #yh-intro .yh-sub { font-family:'Baloo 2'; font-size:20px; color: var(--tan-light); margin: 0 0 18px; }
+  .yh-card { background: rgba(247,243,233,0.08); border: 1px solid rgba(247,243,233,0.15); backdrop-filter: blur(8px); border-radius: 18px; padding: 16px 18px; }
+  .yh-rules { list-style: none; padding: 0; margin: 12px 0 0; display:flex; flex-direction:column; gap:10px; }
+  .yh-rules li { display:flex; gap:10px; font-size:14.5px; line-height:1.4; color: rgba(247,243,233,0.9); }
+  .yh-rules li span.n { flex:0 0 22px; height:22px; border-radius:50%; background: var(--tan); color: var(--forest); font-weight:700; font-size:12px; display:flex; align-items:center; justify-content:center; margin-top:1px; }
+  .yh-btn { border:none; border-radius: 100px; padding: 15px 20px; font-family:'Baloo 2'; font-weight:700; font-size:17px; cursor:pointer; transition: transform .15s ease; width:100%; }
+  .yh-btn:active { transform: scale(0.97); }
+  .yh-btn:disabled { opacity: 0.5; cursor: default; pointer-events: none; }
+  .yh-btn-primary { background: linear-gradient(135deg, var(--sage-light), var(--sage)); color: var(--forest); box-shadow: 0 8px 20px rgba(95,174,140,0.35); }
+  .yh-btn-ghost { background: transparent; color: var(--cream); border: 1.5px solid rgba(247,243,233,0.35); }
+  #yh-cam-note { font-size: 12.5px; color: rgba(247,243,233,0.65); text-align:center; margin-top: 10px; }
+
+  /* hunt HUD */
+  #yh-hud { position: relative; z-index: 3; display:flex; align-items:center; justify-content:space-between; padding: 16px 18px 6px; gap: 10px; }
+  #yh-hud2 { position: relative; z-index: 3; display:flex; align-items:center; gap: 8px; padding: 0 18px 10px; }
+  .yh-pill { background: rgba(14,33,27,0.55); backdrop-filter: blur(6px); border: 1px solid rgba(247,243,233,0.18); border-radius: 100px; padding: 8px 14px; font-weight:600; font-size:13.5px; display:flex; align-items:center; gap:6px; color: var(--cream); }
+  #yh-streak-pill.hot { background: rgba(235,200,104,0.28); border-color: rgba(235,200,104,0.5); }
+  #yh-timer.warn { color: var(--coral); }
+  #yh-progress-wrap { position:relative; z-index:3; padding: 0 18px; }
+  #yh-progress-track { height: 6px; border-radius: 100px; background: rgba(247,243,233,0.15); overflow:hidden; }
+  #yh-progress-fill { height:100%; width:0%; background: linear-gradient(90deg, var(--tan), var(--gold)); transition: width .35s ease; }
+
+  /* hunt field */
+  #yh-field { position: relative; flex: 1; z-index: 2; overflow: hidden; cursor: grab; touch-action: none; }
+  #yh-field:active { cursor: grabbing; }
+
+  /* ---------- archery target ---------- */
+  .yh-target {
+    position: absolute; width: 88px; height: 88px;
+    margin-left: -44px; margin-top: -44px;
+    opacity: 0; transition: opacity .2s ease;
+    pointer-events: none;
+  }
+  .yh-target.visible { opacity: 1; }
+  .yh-target.found { opacity: 0 !important; }
+  .yh-stand { position: absolute; left: 0; top: 58px; width: 88px; height: 64px; overflow: visible; }
+  .yh-face {
+    position: absolute; inset: 0; border-radius: 50%;
+    background: radial-gradient(circle closest-side,
+      #F6CD3F 0 18%, #B8912A 18% 20%,
+      #E0473C 20% 38%, #A8322A 38% 40%,
+      #3D8BD6 40% 58%, #2A6AA6 58% 60%,
+      #262626 60% 78%, #5a5a5a 78% 80%,
+      #F4EFE3 80% 100%);
+    box-shadow: 0 0 0 5px #D2B477, 0 0 0 7px #8A6A3A, 0 12px 22px rgba(0,0,0,0.45);
+    transition: box-shadow .15s ease;
+  }
+  .yh-face::after { content:''; position:absolute; left:50%; top:50%; width:4px; height:4px; margin:-2px 0 0 -2px; border-radius:50%; background: rgba(60,40,10,0.6); }
+  .yh-target.locked .yh-face { box-shadow: 0 0 0 5px #D2B477, 0 0 0 7px #8A6A3A, 0 0 26px 10px rgba(235,200,104,0.75); }
+  .yh-target-num {
+    position: absolute; left: 50%; top: -34px; transform: translateX(-50%);
+    padding: 2px 11px; border-radius: 100px;
+    font-family: 'Baloo 2'; font-weight: 700; font-size: 15px; color: #fff;
+    border: 1.5px solid rgba(255,255,255,0.75); box-shadow: 0 4px 10px rgba(0,0,0,0.35);
+    white-space: nowrap;
+  }
+  .yh-stuck { position: absolute; width: 22px; height: 22px; margin: -11px 0 0 -11px; pointer-events: none; animation: yh-stick .18s ease-out; }
+  @keyframes yh-stick { 0% { transform: scale(1.8); } 60% { transform: scale(0.9); } 100% { transform: scale(1); } }
+
+  /* reticle */
+  #yh-reticle { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:3; pointer-events:none; }
+
+  /* flying arrow + floating text */
+  .yh-flying { position: absolute; left: 0; top: 0; width: 14px; height: 90px; z-index: 3; pointer-events: none; transform-origin: 50% 0; will-change: transform; }
+  .yh-float { position: absolute; left: 50%; top: 38%; transform: translate(-50%,-50%); z-index: 4; pointer-events: none; font-family: 'Baloo 2'; font-weight: 800; font-size: 22px; text-shadow: 0 2px 8px rgba(0,0,0,0.6); white-space: nowrap; animation: yh-rise 1.3s ease-out forwards; }
+  @keyframes yh-rise { 0% { opacity:0; transform: translate(-50%,-30%) scale(0.8); } 15% { opacity:1; transform: translate(-50%,-50%) scale(1.05); } 100% { opacity:0; transform: translate(-50%,-140%) scale(1); } }
+
+  /* POV bow */
+  #yh-bow {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    width: 100%; height: 50%;
+    overflow: visible;
+    z-index: 3; pointer-events: none;
+    filter: drop-shadow(0 8px 14px rgba(0,0,0,0.45));
+  }
+  #yh-bow-arrow { transition: opacity .25s ease; }
+
+  /* shoot button */
+  #yh-shoot {
+    position: absolute; right: 12px; bottom: calc(24px + env(safe-area-inset-bottom));
+    z-index: 4; width: 72px; height: 72px; border-radius: 50%;
+    border: 3px solid rgba(247,243,233,0.85);
+    background: radial-gradient(circle at 35% 30%, #F6DD8A, var(--gold) 55%, #B98E2E);
+    color: var(--forest); font-family: 'Baloo 2'; font-weight: 800; font-size: 15px; line-height: 1.05;
+    box-shadow: 0 8px 18px rgba(0,0,0,0.4);
+    cursor: pointer; touch-action: none; -webkit-tap-highlight-color: transparent;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    transition: transform .12s ease, box-shadow .12s ease;
+  }
+  #yh-shoot .ic { font-size: 22px; line-height: 1; margin-bottom: 2px; }
+  #yh-shoot.drawing { transform: scale(0.92); box-shadow: 0 0 0 6px rgba(235,200,104,0.35), 0 6px 14px rgba(0,0,0,0.4); }
+
+  /* hint arrow */
+  #yh-hint { position: absolute; z-index: 3; display:flex; flex-direction:column; align-items:center; gap:2px; transition: all .15s linear; pointer-events:none; transform: translate(-50%,-50%); }
+  #yh-hint .yh-chevron { width: 34px; height: 34px; border-radius: 50%; background: rgba(23,51,42,0.72); backdrop-filter: blur(4px); display:flex; align-items:center; justify-content:center; font-size:18px; animation: yh-pulse 1.2s ease-in-out infinite; border: 1.5px solid rgba(247,243,233,0.35); }
+  #yh-hint .yh-hint-label { font-size: 10.5px; font-weight:700; background: rgba(23,51,42,0.72); padding: 2px 8px; border-radius: 100px; white-space:nowrap; }
+  @keyframes yh-pulse { 0%,100% { transform: scale(1); opacity:1; } 50% { transform: scale(1.15); opacity:0.75; } }
+  .yh-hidden-hint { display: none !important; }
+
+  #yh-recal { flex:0 0 auto; }
+  #yh-motion-note { position:absolute; top:60px; left:14px; right:14px; z-index:4; background:rgba(23,51,42,0.85); color:#fff; font-size:12px; padding:9px 12px; border-radius:12px; font-family:'Inter'; text-align:center; }
+
+  /* card modal */
+  #yh-modal-wrap {
+    position: absolute; top: 0; bottom: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 100%; max-width: 480px;
+    z-index: 5; display: flex; align-items: flex-end;
+    background: rgba(14,33,27,0.55); backdrop-filter: blur(3px);
+  }
+  #yh-modal { width:100%; background: var(--cream); color: var(--forest); border-radius: 24px 24px 0 0; padding: 24px 22px calc(26px + env(safe-area-inset-bottom)); animation: yh-up .25s ease; max-height: 92%; overflow-y: auto; }
+  @keyframes yh-up { from { transform: translateY(30px); opacity:0; } to { transform: translateY(0); opacity:1; } }
+  #yh-modal .yh-term-chip { display:inline-block; background: var(--forest); color: var(--sage-light); font-family:'Baloo 2'; font-weight:700; padding:8px 16px; border-radius: 100px; font-size:18px; margin-bottom: 12px; }
+  #yh-modal p.yh-prompt { font-size: 14px; color: #4a5c53; margin: 0 0 14px; }
+  .yh-opt { width:100%; text-align:left; background: white; border: 2px solid #e4ddc9; border-radius: 14px; padding: 13px 15px; margin-bottom: 9px; font-size: 14.5px; line-height:1.35; cursor:pointer; font-family:'Inter'; color: var(--forest); }
+  .yh-opt:active { transform: scale(0.99); }
+  .yh-opt.correct { background: #E7F5EC; border-color: var(--sage); }
+  .yh-opt.wrong { background: #FBEAE5; border-color: var(--coral); }
+  .yh-opt.eliminated { opacity: 0.35; text-decoration: line-through; pointer-events: none; background: #f2ede0; }
+  #yh-feedback { font-family:'Baloo 2'; font-weight:700; font-size: 15px; min-height: 20px; margin-top: 4px; }
+  #yh-tip { font-size: 13px; color: #4a5c53; background: #F0EBD9; border-radius: 12px; padding: 10px 13px; margin-top: 8px; line-height: 1.4; }
+  #yh-tip b { color: var(--forest); }
+
+  .yh-hint-btn { flex:0 0 auto; border:none; background: #F0EBD9; color: var(--forest); font-family:'Baloo 2'; font-weight:700; font-size: 12.5px; padding: 7px 11px; border-radius: 100px; cursor:pointer; white-space:nowrap; }
+  .yh-hint-btn:disabled { opacity: 0.4; cursor: default; }
+  .yh-hint-btn span { color: var(--coral); }
+
+  .yh-tf-row { display:flex; gap:10px; margin-top: 4px; }
+  .yh-tf-btn { flex:1; border:none; border-radius:14px; padding:18px 10px; font-family:'Baloo 2'; font-weight:700; font-size:17px; cursor:pointer; background: white; border: 2px solid #e4ddc9; color: var(--forest); text-align:center; }
+  .yh-tf-btn.correct { background:#E7F5EC; border-color: var(--sage); }
+  .yh-tf-btn.wrong { background:#FBEAE5; border-color: var(--coral); }
+
+  #yh-modal.boss { border-top: 4px solid var(--gold); }
+  .yh-boss-chip { display:inline-block; background: var(--gold); color: var(--forest); font-family:'Baloo 2'; font-weight:700; padding:6px 14px; border-radius:100px; font-size:12.5px; margin-bottom:8px; letter-spacing:0.03em; }
+
+  /* confetti */
+  .yh-confetti { position: absolute; top: -10px; width: 8px; height: 14px; z-index: 6; pointer-events: none; animation: yh-fall linear forwards; }
+  @keyframes yh-fall { to { transform: translateY(115vh) rotate(560deg); opacity: 0.9; } }
+
+  /* summary / gallery walk */
+  #yh-summary { padding: 26px 22px; overflow-y: auto; background: var(--cream); color: var(--forest); }
+  #yh-summary h2 { font-size: 26px; margin: 4px 0 2px; }
+  #yh-summary .yh-score { font-family:'Baloo 2'; font-size: 40px; color: var(--sage); margin: 6px 0 2px; }
+  .yh-gallery-item { display:flex; gap:10px; padding: 10px 0; border-bottom: 1px solid #e6e0cd; align-items:flex-start; }
+  .yh-gallery-item .yh-mark { flex:0 0 22px; font-weight:700; }
+  .yh-gallery-item.ok .yh-mark { color: var(--sage); }
+  .yh-gallery-item.miss .yh-mark { color: var(--coral); }
+  .yh-gallery-item .yh-txt b { display:block; font-family:'Baloo 2'; font-size:15px; }
+  .yh-gallery-item .yh-txt span { font-size: 12.5px; color:#5a6a60; }
+</style>
+</head>
+<body>
+
+<div id="yhapp">
+  <video id="yh-video" autoplay playsinline muted class="yh-hidden"></video>
+  <div id="yh-noise-bg"></div>
+  <div id="yh-scrim"></div>
+
+  <!-- INTRO -->
+  <div id="yh-intro" class="yh-screen">
+    <div>
+      <span class="yh-eyebrow">Assessment Vocabulary AR Hunt</span>
+      <h1>Yoohoo, where<br>are you?</h1>
+      <p class="yh-sub">Track down and hit 15 assessment targets with your bow</p>
+      <div class="yh-card">
+        <ul class="yh-rules">
+          <li><span class="n">1</span>One archery target appears at a time somewhere around you.</li>
+          <li><span class="n">2</span>Turn, walk or drag the screen until the target lines up with the crosshair.</li>
+          <li><span class="n">3</span>Tap <b>Shoot</b> to draw your bow and loose an arrow.</li>
+          <li><span class="n">4</span>Hit the target to reveal its question. Bullseyes earn bonus points!</li>
+          <li><span class="n">5</span>Answer correctly to reveal the next target. You've got 10 minutes for all 15. Happy hunting!</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div style="height:16px"></div>
+      <button class="yh-btn yh-btn-primary" id="yh-start-cam">Start hunt with camera</button>
+      <div style="height:10px"></div>
+      <button class="yh-btn yh-btn-ghost" id="yh-start-nocam">Start without camera</button>
+      <p id="yh-cam-note">Camera view works best on a phone. Your browser will ask for camera permission first. On a computer, you can also press the spacebar to shoot.</p>
+    </div>
+  </div>
+
+  <!-- HUNT -->
+  <div id="yh-hunt" class="yh-screen yh-hidden">
+    <div id="yh-hud">
+      <div class="yh-pill">⏱ <span id="yh-timer">10:00</span></div>
+      <div class="yh-pill">🎯 <span id="yh-found-count">0</span>/15</div>
+      <button id="yh-recal" class="yh-pill" style="border:none; cursor:pointer;">🧭 Recenter</button>
+      <button id="yh-mute" class="yh-pill" style="border:none; cursor:pointer;">🔊</button>
+    </div>
+    <div id="yh-hud2">
+      <div class="yh-pill">⭐ <span id="yh-score">0</span> pts</div>
+      <div class="yh-pill" id="yh-streak-pill">🔥 <span id="yh-streak">0</span> streak</div>
+    </div>
+    <div id="yh-progress-wrap"><div id="yh-progress-track"><div id="yh-progress-fill"></div></div></div>
+    <div id="yh-field">
+      <div id="yh-marker" class="yh-target">
+        <svg class="yh-stand" viewBox="0 0 88 64">
+          <line x1="44" y1="0" x2="44" y2="58" stroke="#4E3520" stroke-width="5" stroke-linecap="round"/>
+          <line x1="30" y1="0" x2="12" y2="62" stroke="#7A5431" stroke-width="6" stroke-linecap="round"/>
+          <line x1="58" y1="0" x2="76" y2="62" stroke="#7A5431" stroke-width="6" stroke-linecap="round"/>
+        </svg>
+        <div class="yh-face" id="yh-face"></div>
+        <div class="yh-target-num" id="yh-target-num">1</div>
+      </div>
+      <div id="yh-reticle">
+        <svg viewBox="0 0 80 80" width="80" height="80">
+          <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(247,243,233,0.3)" stroke-width="2"/>
+          <circle id="yh-reticle-ring" cx="40" cy="40" r="34" fill="none" stroke="#EBC868" stroke-width="4" stroke-linecap="round" stroke-dasharray="213.6" stroke-dashoffset="213.6" transform="rotate(-90 40 40)"/>
+          <line x1="40" y1="4" x2="40" y2="20" stroke="rgba(247,243,233,0.9)" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="40" y1="60" x2="40" y2="76" stroke="rgba(247,243,233,0.9)" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="4" y1="40" x2="20" y2="40" stroke="rgba(247,243,233,0.9)" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="60" y1="40" x2="76" y2="40" stroke="rgba(247,243,233,0.9)" stroke-width="2.5" stroke-linecap="round"/>
+          <circle cx="40" cy="40" r="2.5" fill="rgba(247,243,233,0.9)"/>
+        </svg>
+      </div>
+      <div id="yh-hint" class="yh-hidden-hint"><div class="yh-chevron">➜</div><div class="yh-hint-label">turn</div></div>
+    </div>
+
+    <!-- first-person bow, held upright like an archer -->
+    <svg id="yh-bow" viewBox="0 0 400 440" preserveAspectRatio="xMidYMax meet">
+      <defs>
+        <pattern id="yhCamo" width="70" height="70" patternUnits="userSpaceOnUse" patternTransform="rotate(-25)">
+          <rect width="70" height="70" fill="#7A6A44"/>
+          <path d="M4,10 q14,-8 24,2 q8,10 -6,14 q-14,4 -18,-6z" fill="#4B3A24"/>
+          <path d="M38,30 q16,-6 26,6 q4,12 -12,12 q-16,-2 -14,-18z" fill="#5A5B34"/>
+          <path d="M10,46 q10,-6 18,2 q6,10 -8,12 q-12,0 -10,-14z" fill="#3E2F1D"/>
+          <path d="M46,2 q10,-2 14,6 q-2,8 -12,4z" fill="#A08A5C"/>
+          <path d="M28,58 q10,-4 16,4 q-4,8 -14,4z" fill="#A08A5C"/>
+        </pattern>
+        <linearGradient id="yhLimb" x1="0" x2="1" y1="0" y2="0">
+          <stop offset="0" stop-color="#8A3F12"/>
+          <stop offset="0.45" stop-color="#E88A2E"/>
+          <stop offset="1" stop-color="#A24E18"/>
+        </linearGradient>
+      </defs>
+
+      <!-- bow arm (camo sleeve) coming in from the bottom right -->
+      <path d="M170,226 L440,350 L440,480 L188,272 Z" fill="url(#yhCamo)"/>
+      <path d="M170,226 L188,272" stroke="#2E2416" stroke-width="3" opacity="0.35"/>
+
+      <!-- limbs -->
+      <path d="M149,192 Q118,90 70,-44" fill="none" stroke="url(#yhLimb)" stroke-width="10" stroke-linecap="round"/>
+      <path d="M150,276 Q162,382 186,486" fill="none" stroke="url(#yhLimb)" stroke-width="10" stroke-linecap="round"/>
+      <!-- riser -->
+      <path d="M146,184 C160,210 160,252 151,282" fill="none" stroke="#4A2C16" stroke-width="17" stroke-linecap="round"/>
+      <path d="M150,190 C161,212 161,248 154,276" fill="none" stroke="#7A4E2A" stroke-width="4" stroke-linecap="round" opacity="0.7"/>
+      <!-- arrow shelf -->
+      <path d="M145,212 q8,-6 14,0" fill="none" stroke="#2C1A0C" stroke-width="4" stroke-linecap="round"/>
+
+      <!-- bow hand (leather glove) gripping the riser -->
+      <g id="yh-bow-hand" transform="translate(-27 0)">
+        <path d="M168,226 q22,-10 44,2 q10,6 8,22 q-2,18 -14,26 q-18,8 -34,0 q-10,-8 -10,-24 q0,-18 6,-26z" fill="#6B4424"/>
+        <path d="M204,232 q10,4 12,12 M204,246 q10,4 11,12 M200,260 q9,4 9,10" fill="none" stroke="#3E2512" stroke-width="3" stroke-linecap="round"/>
+        <path d="M170,236 q-4,10 0,20" fill="none" stroke="#8C5A30" stroke-width="3" stroke-linecap="round" opacity="0.8"/>
+        <path d="M190,272 q14,4 24,-4 l6,14 q-16,10 -34,4z" fill="#4E3018"/>
+      </g>
+
+      <!-- string -->
+      <polyline id="yh-bow-string" points="70,-44 168,330 186,486" fill="none" stroke="#EDE6D3" stroke-width="1.8" stroke-linejoin="round"/>
+
+      <!-- loaded arrow (positions set by script) -->
+      <g id="yh-bow-arrow">
+        <polygon id="yh-fl1" points="0,0 0,0 0,0 0,0" fill="#D4E83C"/>
+        <polygon id="yh-fl2" points="0,0 0,0 0,0 0,0" fill="#B8CC2A"/>
+        <line id="yh-shaft" x1="0" y1="0" x2="0" y2="0" stroke="#A8662E" stroke-width="3.6" stroke-linecap="round"/>
+        <polygon id="yh-head" points="0,0 0,0 0,0" fill="#A9B3B8" stroke="#6E787D" stroke-width="1"/>
+      </g>
+
+      <!-- draw hand (shooting glove) holding the string -->
+      <g id="yh-draw-hand" transform="translate(168 330)">
+        <path d="M-22,14 L20,20 L14,220 L-78,200 Z" fill="url(#yhCamo)"/>
+        <path d="M-24,-16 q22,-12 44,-2 q8,8 6,22 q-2,14 -14,20 q-20,6 -34,-2 q-10,-8 -10,-20 q0,-12 8,-18z" fill="#6B4424"/>
+        <path d="M-20,-4 q8,-4 16,0 M-18,6 q8,-4 16,0" fill="none" stroke="#3E2512" stroke-width="3" stroke-linecap="round"/>
+        <path d="M8,-14 q10,2 12,12" fill="none" stroke="#8C5A30" stroke-width="3" stroke-linecap="round" opacity="0.8"/>
+        <rect x="-26" y="16" width="46" height="10" rx="4" fill="#4E3018"/>
+      </g>
+    </svg>
+
+    <button id="yh-shoot" aria-label="Shoot"><span class="ic">🏹</span>Shoot</button>
+  </div>
+
+  <!-- MATCH MODAL -->
+  <div id="yh-modal-wrap" class="yh-hidden">
+    <div id="yh-modal">
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px;">
+        <div class="yh-term-chip" id="yh-modal-term">Term</div>
+        <button id="yh-hint-btn" class="yh-hint-btn">💡 Hint <span id="yh-hint-cost">-15</span></button>
+      </div>
+      <p class="yh-prompt" id="yh-modal-prompt">Which description matches this target?</p>
+      <div id="yh-modal-opts"></div>
+      <div id="yh-feedback"></div>
+      <div id="yh-tip" class="yh-hidden"></div>
+      <button id="yh-next-btn" class="yh-btn yh-btn-primary yh-hidden" style="margin-top:14px;">Next →</button>
+    </div>
+  </div>
+
+  <!-- SUMMARY -->
+  <div id="yh-summary" class="yh-screen yh-hidden">
+    <span class="yh-eyebrow" style="background:var(--tan); color:var(--forest);">Gallery Walk</span>
+    <h2>Nice hunting!</h2>
+    <div class="yh-score" id="yh-final-score">0 / 15</div>
+    <p id="yh-final-points" style="font-size:13px; color:var(--tan); font-weight:600; margin:0 0 10px;">0 pts</p>
+    <p style="font-size:13.5px; color:#5a6a60; margin:0 0 14px;">Here's how every target matched up.</p>
+    <div id="yh-gallery-list"></div>
+    <button class="yh-btn yh-btn-primary" id="yh-replay" style="margin-top:18px;">Play again</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  const TERMS = [
+    {id:'A', term:'Assessment', desc:'The process of finding out, understanding, or judging what children know and can do', tip:'The umbrella term \u2014 every type below is a flavor of this.'},
+    {id:'B', term:'Assessment for learning', desc:'Gathers information to help decide where children are in their learning, where they need to go, and how best to get there', tip:"Think of it like GPS for learning: where am I, where next, how do I get there."},
+    {id:'C', term:'Assessment of learning', desc:'Provides a snapshot of children\u2019s learning at a particular point in time', tip:'One moment in time \u2014 like a final exam.'},
+    {id:'D', term:'Assessment as learning', desc:'The learning task incorporates assessment so that children are active participants in their own learning', tip:'The task itself IS the assessment \u2014 not separate from it.'},
+    {id:'E', term:'Summative assessment', desc:'Type of assessment that is carried out at the end of a period of time to determine and document children\u2019s learning over that period', tip:'The wrap-up snapshot taken at the finish line.'},
+    {id:'F', term:'Formative assessment', desc:'Provides information to further support children\u2019s learning', tip:'Feeds forward \u2014 used to guide what happens next.'},
+    {id:'G', term:'Dynamic assessment', desc:'Gauges children\u2019s progress and difficulties as they arise during a lesson', tip:'Catches struggles live, mid-lesson, not after.'},
+    {id:'H', term:'Authentic or performance assessment', desc:'Engages students in meaningful and/or real-world experiences that show their learning', tip:'Real-world doing, not just answering questions on paper.'},
+    {id:'I', term:'Criterion-referenced assessment', desc:'Involves assessing students against a set of standards', tip:'Measured against a fixed bar, not other students.'},
+    {id:'J', term:'Norm-referenced assessment', desc:'Involves assessing students in relation to their peers', tip:'Measured against how everyone else performed.'},
+    {id:'K', term:'Ipsative assessment', desc:'Involves assessing students against their own previous achievements', tip:'Compared only to your own past self.'},
+    {id:'L', term:'Self-assessment', desc:'Students are involved in the assessment process themselves', tip:'You are the one judging your own work.'},
+    {id:'M', term:'Peer assessment', desc:'Students are engaged in assessing each other', tip:'Classmates grade classmates.'},
+    {id:'N', term:'Assessment task', desc:'What children do as part of an assessment', tip:'The actual activity or exercise handed to students.'},
+    {id:'O', term:'Assessment tool', desc:'What teachers use to measure children\u2019s learning or achievements', tip:'The instrument used to measure \u2014 like a rubric or checklist.'},
+  ];
+  TERMS.forEach((t, i) => { t.num = i + 1; });
+
+  const $ = (id) => document.getElementById(id);
+  const intro = $('yh-intro'), hunt = $('yh-hunt'), field = $('yh-field'), summary = $('yh-summary');
+  const video = $('yh-video'), noiseBg = $('yh-noise-bg');
+  const modalWrap = $('yh-modal-wrap'), modalTerm = $('yh-modal-term'), modalOpts = $('yh-modal-opts'), feedback = $('yh-feedback');
+  const modalPrompt = $('yh-modal-prompt'), modalCard = $('yh-modal'), hintBtn = $('yh-hint-btn'), tipBox = $('yh-tip');
+  const nextBtn = $('yh-next-btn');
+  const timerEl = $('yh-timer'), foundCountEl = $('yh-found-count'), progressFill = $('yh-progress-fill');
+  const scoreEl = $('yh-score'), streakEl = $('yh-streak'), streakPill = $('yh-streak-pill');
+  const markerEl = $('yh-marker'), faceEl = $('yh-face'), numTag = $('yh-target-num');
+  const reticleRing = $('yh-reticle-ring');
+  const bowSvg = $('yh-bow'), bowString = $('yh-bow-string'), bowArrow = $('yh-bow-arrow'), shootBtn = $('yh-shoot');
+  const hintEl = $('yh-hint');
+
+  const RING_CIRC = 213.6;
+  const FOV_H = 34, FOV_V = 30;   // half-angles, degrees
+  const TARGET_R = 44;            // target radius in px (target is 88px wide)
+  const DRAW_MS = 650;            // time to reach full draw
+  const AUTO_DRAW = 0.7;          // a quick tap auto-draws to this point, then shoots
+  const RINGS = [
+    { max: 0.2, label: 'Bullseye!', pts: 30, bull: true },
+    { max: 0.6, label: 'Great shot!', pts: 15 },
+    { max: 1.0, label: 'Hit!', pts: 5 },
+  ];
+  const ORB_COLORS = ['#EF6F5C','#F2A03D','#D9AE2A','#8FC44C','#4FB88A','#3FB6C6','#4E9BE0','#6C7CE0','#9B6FE0','#D06BD0','#E0629C','#E8829A','#C98B4B','#7FA85C','#4E7FB0'];
+  function orbColor(num){ return ORB_COLORS[(num - 1) % ORB_COLORS.length]; }
+
+  const FLY_SVG = '<svg viewBox="0 0 14 90" width="14" height="90"><line x1="7" y1="8" x2="7" y2="84" stroke="#D9B98A" stroke-width="2.6" stroke-linecap="round"/><polygon points="7,0 1,12 13,12" fill="#A9B3B8"/><polygon points="7,68 1,74 1,88 7,83" fill="#E4694A"/><polygon points="7,68 13,74 13,88 7,83" fill="#F7F3E9"/></svg>';
+  const STUCK_SVG = '<svg viewBox="-11 -11 22 22" width="22" height="22"><g stroke-linecap="round"><line x1="0" y1="0" x2="0" y2="-9" stroke="#E4694A" stroke-width="3.4"/><line x1="0" y1="0" x2="7.8" y2="4.5" stroke="#F7F3E9" stroke-width="3.4"/><line x1="0" y1="0" x2="-7.8" y2="4.5" stroke="#F7F3E9" stroke-width="3.4"/></g><circle cx="0" cy="0" r="2.8" fill="#EBC868" stroke="#5a4520" stroke-width="1"/></svg>';
+
+  function freshState(){
+    return { found:{}, attempts:{}, timeLeft:10*60, timerHandle:null, activeTerm:null, ended:false, spatial:false,
+             queue:[], queueIdx:0, currentId:null, score:0, streak:0, hintUsed:false, qType:'mcq',
+             bullseyes:0, tgt:{x:0, y:0, inView:false}, _wasLocked:false, _lastTs:0 };
+  }
+  let state = freshState();
+  let bow = { drawing:false, draw:0, loaded:true, busy:false, autoFire:false };
+  let pendingAdvance = null;
+  let nextCountdownTimer = null;
+  let orient = { heading: 0, pitch: 0, baselineAlpha: null, baselineBeta: null, ready: false };
+  let dragOffset = { heading: 0, pitch: 0 };
+  let drag = { active: false, lastX: 0, lastY: 0, moved: 0 };
+  let rafHandle = null;
+
+  function normalize180(a){ a = a % 360; if (a > 180) a -= 360; if (a < -180) a += 360; return a; }
+
+  // ================= Audio: sound effects =================
+  let audioCtx = null;
+  let muted = false;
+  function ensureAudio(){
+    if (!audioCtx){ try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){} }
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+  }
+  function tone(freq, dur, type, vol, delay){
+    if (muted || !audioCtx) return;
+    const t = audioCtx.currentTime + (delay||0)/1000;
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.type = type || 'sine'; o.frequency.value = freq;
+    g.gain.setValueAtTime(vol != null ? vol : 0.14, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur/1000);
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start(t); o.stop(t + dur/1000 + 0.03);
+  }
+  function sweep(f0, f1, dur, type, vol){
+    if (muted || !audioCtx) return;
+    const t = audioCtx.currentTime;
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start(t); o.stop(t + dur + 0.03);
+  }
+  let whiteBuf = null;
+  function noise(dur, type, f0, f1, vol){
+    if (muted || !audioCtx) return;
+    if (!whiteBuf){
+      whiteBuf = audioCtx.createBuffer(1, audioCtx.sampleRate, audioCtx.sampleRate);
+      const d = whiteBuf.getChannelData(0);
+      for (let i=0;i<d.length;i++) d[i] = Math.random()*2 - 1;
+    }
+    const t = audioCtx.currentTime;
+    const src = audioCtx.createBufferSource(); src.buffer = whiteBuf;
+    const f = audioCtx.createBiquadFilter(); f.type = type;
+    f.frequency.setValueAtTime(f0, t); f.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    const g = audioCtx.createGain(); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    src.connect(f); f.connect(g); g.connect(audioCtx.destination);
+    src.start(t); src.stop(t + dur + 0.03);
+  }
+  function sfxLock(){ tone(880, 110, 'sine', 0.07); }
+  function sfxDraw(){ noise(0.55, 'bandpass', 700, 1500, 0.045); sweep(110, 150, 0.5, 'triangle', 0.025); }
+  function sfxRelease(){ sweep(190, 85, 0.28, 'triangle', 0.16); noise(0.14, 'highpass', 2500, 1500, 0.08); }
+  function sfxThud(){ sweep(130, 55, 0.18, 'sine', 0.3); noise(0.09, 'lowpass', 900, 300, 0.22); }
+  function sfxWhoosh(){ noise(0.4, 'bandpass', 1400, 350, 0.09); }
+  function sfxCorrect(){ tone(660, 90, 'sine', 0.13); tone(880, 90, 'sine', 0.13, 90); tone(1100, 160, 'sine', 0.13, 180); }
+  function sfxWrong(){ tone(200, 200, 'sawtooth', 0.1); }
+  function sfxHint(){ tone(520, 90, 'triangle', 0.1); }
+  function sfxComplete(){ [523,659,784,1046].forEach((f,i) => tone(f, 220, 'sine', 0.13, i*140)); }
+  function buzz(pattern){ if (muted || !navigator.vibrate) return; try { navigator.vibrate(pattern); } catch(e){} }
+
+  // ================= Audio: calm forest hunting music (generated live) =================
+  const Music = (function(){
+    let ctx, master, dry, wet, timer = null, windSrc = null, windLfo = null;
+    let nextChord = 0, chordIdx = 0, nextBird = 0, running = false;
+    const VOL = 0.5, CHORD_LEN = 8;
+    // D major -> B minor -> G major7 -> A sus2  (slow, warm, open)
+    const CHORDS = [[50,57,62,66,69],[47,54,59,62,66],[43,50,55,59,62,66],[45,52,57,59,64]];
+    const MELODY = [69,71,74,76,78,81,83]; // D major pentatonic, wooden-flute range
+    const mtof = m => 440*Math.pow(2,(m-69)/12);
+
+    function impulse(sec, decay){
+      const len = Math.floor(ctx.sampleRate*sec), b = ctx.createBuffer(2, len, ctx.sampleRate);
+      for (let c=0;c<2;c++){ const d = b.getChannelData(c); for (let i=0;i<len;i++) d[i] = (Math.random()*2-1)*Math.pow(1-i/len, decay); }
+      return b;
+    }
+    function brown(sec){
+      const len = Math.floor(ctx.sampleRate*sec), b = ctx.createBuffer(1, len, ctx.sampleRate), d = b.getChannelData(0);
+      let last = 0;
+      for (let i=0;i<len;i++){ const w = Math.random()*2-1; last = (last + 0.02*w)/1.02; d[i] = last*3.5; }
+      return b;
+    }
+    function panner(v){
+      if (!ctx.createStereoPanner) return null;
+      const p = ctx.createStereoPanner(); p.pan.value = v; return p;
+    }
+    function out(node, wetAmt){
+      node.connect(dry);
+      if (wetAmt){ const s = ctx.createGain(); s.gain.value = wetAmt; node.connect(s); s.connect(wet); }
+    }
+    function pad(notes, t){
+      const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 950; f.Q.value = 0.3;
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(1, t+2.8);
+      g.gain.setValueAtTime(1, t+CHORD_LEN-0.5); g.gain.linearRampToValueAtTime(0, t+CHORD_LEN+2.5);
+      f.connect(g); out(g, 0.9);
+      notes.forEach(m => {
+        [['triangle', 0, 0.022], ['sine', 7, 0.018]].forEach(([type, det, vol]) => {
+          const o = ctx.createOscillator(); o.type = type; o.frequency.value = mtof(m); o.detune.value = det;
+          const ng = ctx.createGain(); ng.gain.value = vol;
+          o.connect(ng); ng.connect(f);
+          o.start(t); o.stop(t + CHORD_LEN + 2.7);
+        });
+      });
+    }
+    function flute(m, t){
+      const o = ctx.createOscillator(); o.type = 'sine'; o.frequency.value = mtof(m);
+      const lfo = ctx.createOscillator(); lfo.frequency.value = 5;
+      const lg = ctx.createGain(); lg.gain.setValueAtTime(0, t); lg.gain.linearRampToValueAtTime(mtof(m)*0.006, t+0.6);
+      lfo.connect(lg); lg.connect(o.frequency);
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.045, t+0.25);
+      g.gain.linearRampToValueAtTime(0.03, t+0.9); g.gain.linearRampToValueAtTime(0, t+2.4);
+      o.connect(g);
+      const p = panner((Math.random()-0.5)*0.6);
+      if (p){ g.connect(p); out(p, 1.2); } else out(g, 1.2);
+      o.start(t); lfo.start(t); o.stop(t+2.5); lfo.stop(t+2.5);
+    }
+    function bird(t){
+      const n = 2 + Math.floor(Math.random()*3), base = 2400 + Math.random()*1200;
+      const bus = ctx.createGain(); bus.gain.value = 1;
+      const p = panner((Math.random()-0.5)*1.6);
+      if (p){ bus.connect(p); out(p, 0.8); } else out(bus, 0.8);
+      for (let i=0;i<n;i++){
+        const tt = t + i*0.14;
+        const o = ctx.createOscillator(); o.type = 'sine';
+        o.frequency.setValueAtTime(base, tt);
+        o.frequency.exponentialRampToValueAtTime(base*(1.25 + Math.random()*0.2), tt+0.06);
+        o.frequency.exponentialRampToValueAtTime(base*0.95, tt+0.1);
+        const eg = ctx.createGain();
+        eg.gain.setValueAtTime(0, tt); eg.gain.linearRampToValueAtTime(0.018, tt+0.01); eg.gain.linearRampToValueAtTime(0, tt+0.11);
+        o.connect(eg); eg.connect(bus);
+        o.start(tt); o.stop(tt+0.13);
+      }
+    }
+    function wind(){
+      windSrc = ctx.createBufferSource(); windSrc.buffer = brown(6); windSrc.loop = true;
+      const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 450; bp.Q.value = 0.5;
+      const g = ctx.createGain(); g.gain.value = 0.06;
+      windLfo = ctx.createOscillator(); windLfo.frequency.value = 0.08;
+      const lg = ctx.createGain(); lg.gain.value = 0.04;
+      windLfo.connect(lg); lg.connect(g.gain);
+      windSrc.connect(bp); bp.connect(g); out(g, 0);
+      windSrc.start(); windLfo.start();
+    }
+    function tick(){
+      const now = ctx.currentTime;
+      while (nextChord < now + 1.5){
+        const t = nextChord;
+        pad(CHORDS[chordIdx % CHORDS.length], t);
+        const count = Math.random() < 0.25 ? 0 : 2 + Math.floor(Math.random()*3);
+        let off = 0.5 + Math.random()*1.5;
+        for (let i=0; i<count && off < CHORD_LEN-1; i++){
+          flute(MELODY[Math.floor(Math.random()*MELODY.length)], t + off);
+          off += 1.2 + Math.random()*1.8;
+        }
+        nextChord += CHORD_LEN; chordIdx++;
+      }
+      if (now >= nextBird){ bird(now + 0.05); nextBird = now + 5 + Math.random()*9; }
+    }
+    function start(audio, isMuted){
+      if (running || !audio) return;
+      ctx = audio; running = true;
+      master = ctx.createGain();
+      master.gain.setValueAtTime(0, ctx.currentTime);
+      master.gain.linearRampToValueAtTime(isMuted ? 0 : VOL, ctx.currentTime + 3);
+      master.connect(ctx.destination);
+      dry = ctx.createGain(); dry.gain.value = 0.8; dry.connect(master);
+      wet = ctx.createConvolver(); wet.buffer = impulse(3.5, 2.2); wet.connect(master);
+      wind();
+      nextChord = ctx.currentTime + 0.1; chordIdx = 0; nextBird = ctx.currentTime + 3;
+      tick();
+      timer = setInterval(tick, 400);
+    }
+    function stop(){
+      if (!running) return;
+      running = false;
+      clearInterval(timer); timer = null;
+      const m = master, w = windSrc, l = windLfo, now = ctx.currentTime;
+      m.gain.cancelScheduledValues(now); m.gain.setValueAtTime(m.gain.value, now); m.gain.linearRampToValueAtTime(0, now + 2);
+      setTimeout(() => { try { w && w.stop(); l && l.stop(); } catch(e){} m.disconnect(); }, 2300);
+    }
+    function setMuted(mu){
+      if (!running) return;
+      const now = ctx.currentTime;
+      master.gain.cancelScheduledValues(now);
+      master.gain.setTargetAtTime(mu ? 0 : VOL, now, 0.15);
+    }
+    return { start, stop, setMuted };
+  })();
+
+  function confettiBurst(count, big){
+    const layer = document.getElementById('yhapp');
+    const w = layer.clientWidth;
+    for (let i=0;i<count;i++){
+      const p = document.createElement('div');
+      p.className = 'yh-confetti';
+      const size = big ? (6 + Math.random()*8) : (5 + Math.random()*5);
+      p.style.left = (Math.random()*w) + 'px';
+      p.style.width = size + 'px';
+      p.style.height = (size*1.6) + 'px';
+      p.style.background = ORB_COLORS[Math.floor(Math.random()*ORB_COLORS.length)];
+      p.style.borderRadius = Math.random() < 0.5 ? '50%' : '2px';
+      const dur = (big ? 2200 : 1400) + Math.random()*900;
+      p.style.animationDuration = dur + 'ms';
+      layer.appendChild(p);
+      setTimeout(() => p.remove(), dur + 100);
+    }
+  }
+  function floatText(msg, color){
+    const el = document.createElement('div');
+    el.className = 'yh-float';
+    el.textContent = msg;
+    el.style.color = color;
+    field.appendChild(el);
+    setTimeout(() => el.remove(), 1350);
+  }
+
+  // ================= Target spawning =================
+  function initHuntQueue(){
+    state.queue = TERMS.slice().sort((a,b) => a.num - b.num).map(t => t.id);
+    state.queueIdx = 0;
+    spawnMarker(state.queue[0]);
+  }
+
+  function spawnMarker(termId){
+    const t = TERMS.find(x => x.id === termId);
+    state.currentId = termId;
+    const curHeading = orient.heading + dragOffset.heading;
+    const offset = 90 + Math.random()*180; // force a real turn of 90-270 degrees
+    const sign = Math.random() < 0.5 ? -1 : 1;
+    t.azimuth = normalize180(curHeading + sign*offset);
+    t.elevation = -8 - Math.random()*20;  // floor-biased: look down to find it
+    faceEl.querySelectorAll('.yh-stuck').forEach(s => s.remove());
+    numTag.textContent = t.num;
+    numTag.style.background = orbColor(t.num);
+    markerEl.classList.remove('found', 'locked', 'visible');
+    state._wasLocked = false;
+  }
+
+  // ================= Drag-to-look (works with or without motion sensors) =================
+  function onDragStart(e){
+    drag.active = true; drag.moved = 0;
+    drag.lastX = e.clientX; drag.lastY = e.clientY;
+    try { field.setPointerCapture(e.pointerId); } catch(err){}
+  }
+  function onDragMove(e){
+    if (!drag.active) return;
+    const dx = e.clientX - drag.lastX, dy = e.clientY - drag.lastY;
+    drag.lastX = e.clientX; drag.lastY = e.clientY;
+    drag.moved += Math.abs(dx) + Math.abs(dy);
+    const w = field.clientWidth || 320, h = field.clientHeight || 500;
+    dragOffset.heading = normalize180(dragOffset.heading - (dx / w) * FOV_H * 2);
+    dragOffset.pitch = Math.max(-70, Math.min(70, dragOffset.pitch + (dy / h) * FOV_V * 2));
+  }
+  function onDragEnd(){ drag.active = false; }
+  field.addEventListener('pointerdown', onDragStart);
+  field.addEventListener('pointermove', onDragMove);
+  field.addEventListener('pointerup', onDragEnd);
+  field.addEventListener('pointercancel', onDragEnd);
+  field.addEventListener('pointerleave', onDragEnd);
+
+  // ================= Device orientation =================
+  function headingFromEvent(e){
+    if (typeof e.webkitCompassHeading === 'number') return e.webkitCompassHeading;
+    if (e.alpha == null) return null;
+    return e.absolute ? (360 - e.alpha) % 360 : e.alpha;
+  }
+  function onOrientation(e){
+    const h = headingFromEvent(e);
+    if (h == null || e.beta == null) return;
+    if (orient.baselineAlpha == null){ orient.baselineAlpha = h; orient.baselineBeta = e.beta; }
+    orient.heading = normalize180(h - orient.baselineAlpha);
+    orient.pitch = e.beta - orient.baselineBeta;
+    orient.ready = true;
+  }
+  function recalibrate(){ orient.baselineAlpha = null; orient.baselineBeta = null; orient.ready = false; dragOffset.heading = 0; dragOffset.pitch = 0; }
+  async function setupOrientation(){
+    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function'){
+      try {
+        const res = await DeviceOrientationEvent.requestPermission();
+        if (res !== 'granted') return false;
+      } catch (e) { return false; }
+    }
+    if (typeof DeviceOrientationEvent === 'undefined') return false;
+    window.addEventListener('deviceorientationabsolute', onOrientation, true);
+    window.addEventListener('deviceorientation', onOrientation, true);
+    return true;
+  }
+
+  // ================= Bow: draw, release, shoot =================
+  // Bow geometry (SVG units). String tips, arrow rest, and the nock at rest / full draw.
+  const BOW_TOP = [70,-44], BOW_BOT = [186,486], REST = [152,206];
+  const NOCK0 = [168,330], NOCK1 = [205,424];
+  const drawHand = $('yh-draw-hand');
+  const shaftEl = $('yh-shaft'), headEl = $('yh-head'), fl1 = $('yh-fl1'), fl2 = $('yh-fl2');
+  let arrowTip = [0,0];
+  const P = (p) => p[0].toFixed(1) + ',' + p[1].toFixed(1);
+  function updateBow(){
+    const d = bow.draw;
+    const N = [NOCK0[0] + (NOCK1[0]-NOCK0[0])*d, NOCK0[1] + (NOCK1[1]-NOCK0[1])*d];
+    bowString.setAttribute('points', P(BOW_TOP) + ' ' + P(N) + ' ' + P(BOW_BOT));
+    const vx = REST[0]-N[0], vy = REST[1]-N[1], len = Math.hypot(vx, vy);
+    const u = [vx/len, vy/len], pp = [-u[1], u[0]];
+    const at = (k, s) => [N[0] + u[0]*k + pp[0]*(s||0), N[1] + u[1]*k + pp[1]*(s||0)];
+    const tipK = len + 70 - 40*d;
+    arrowTip = at(tipK);
+    shaftEl.setAttribute('x1', N[0]); shaftEl.setAttribute('y1', N[1]);
+    const sEnd = at(tipK - 12);
+    shaftEl.setAttribute('x2', sEnd[0]); shaftEl.setAttribute('y2', sEnd[1]);
+    headEl.setAttribute('points', [arrowTip, at(tipK-18, 6), at(tipK-18, -6)].map(P).join(' '));
+    fl1.setAttribute('points', [at(20,0), at(60,0), at(52,10), at(26,10)].map(P).join(' '));
+    fl2.setAttribute('points', [at(20,0), at(60,0), at(52,-10), at(26,-10)].map(P).join(' '));
+    bowArrow.style.opacity = bow.loaded ? '1' : '0';
+    const sc = 1 + 0.12*d;
+    drawHand.setAttribute('transform', 'translate(' + N[0].toFixed(1) + ' ' + N[1].toFixed(1) + ') rotate(-14) scale(' + sc.toFixed(3) + ')');
+    if (d >= 1){
+      const jx = (Math.random()-0.5)*1.4, jy = (Math.random()-0.5)*1.4;
+      bowSvg.style.transform = 'translate(' + jx.toFixed(2) + 'px,' + jy.toFixed(2) + 'px)';
+    } else {
+      bowSvg.style.transform = '';
+    }
+    reticleRing.style.strokeDashoffset = String(RING_CIRC * (1 - d));
+  }
+  function arrowTipOnField(){
+    const pt = bowSvg.createSVGPoint(); pt.x = arrowTip[0]; pt.y = arrowTip[1];
+    const sp = pt.matrixTransform(bowSvg.getScreenCTM());
+    const fr = field.getBoundingClientRect();
+    return [sp.x - fr.left, sp.y - fr.top];
+  }
+
+  function canShoot(){
+    return state.spatial && !state.ended && state.currentId && modalWrap.classList.contains('yh-hidden') && bow.loaded && !bow.busy;
+  }
+  function startDraw(){
+    if (bow.drawing || !canShoot()) return;
+    ensureAudio();
+    bow.drawing = true;
+    shootBtn.classList.add('drawing');
+    sfxDraw();
+  }
+  function releaseDraw(){
+    if (!bow.drawing) return;
+    bow.drawing = false;
+    shootBtn.classList.remove('drawing');
+    if (bow.draw < AUTO_DRAW){ bow.autoFire = true; bow.drawing = true; return; } // quick tap: finish the draw, then loose
+    loose();
+  }
+  function loose(){
+    bow.drawing = false; bow.autoFire = false;
+    shootBtn.classList.remove('drawing');
+    const power = bow.draw;
+    const start = arrowTipOnField();
+    bow.draw = 0;
+    fire(power, start);
+  }
+  function reload(){ bow.loaded = true; }
+
+  function stick(dx, dy){
+    const s = document.createElement('div');
+    s.className = 'yh-stuck';
+    s.style.left = (TARGET_R + dx) + 'px';
+    s.style.top = (TARGET_R + dy) + 'px';
+    s.innerHTML = STUCK_SVG;
+    faceEl.appendChild(s);
+  }
+
+  function fire(power, start){
+    bow.loaded = false; bow.busy = true;
+    sfxRelease(); buzz(15);
+    const fw = field.clientWidth, fh = field.clientHeight;
+    const cx = fw/2, cy = fh/2;
+    const tgt = state.tgt, termId = state.currentId;
+    const dx = cx - tgt.x, dy = cy - tgt.y;
+    const dist = Math.hypot(dx, dy);
+    const hit = tgt.inView && dist <= TARGET_R;
+
+    const arrow = document.createElement('div');
+    arrow.className = 'yh-flying';
+    arrow.innerHTML = FLY_SVG;
+    field.appendChild(arrow);
+    const sx = start[0], sy = start[1], endY = cy;
+    const ang = Math.atan2(cx - sx, sy - cy) * 180 / Math.PI;
+    const tf = (x, y, s) => 'translate(' + (x - 7).toFixed(1) + 'px,' + y.toFixed(1) + 'px) rotate(' + ang.toFixed(1) + 'deg) scale(' + s + ')';
+    const dur = 320 - power*110;
+    const anim = arrow.animate(
+      [{ transform: tf(sx, sy, 1) }, { transform: tf(cx, endY, 0.22) }],
+      { duration: dur, easing: 'cubic-bezier(.2,.7,.4,1)', fill: 'forwards' });
+
+    anim.onfinish = () => {
+      if (hit && state.currentId === termId && !state.ended){
+        arrow.remove();
+        const ring = RINGS.find(r => dist/TARGET_R <= r.max) || RINGS[RINGS.length-1];
+        stick(dx, dy);
+        sfxThud(); buzz([30,30,20]);
+        state.score += ring.pts;
+        if (ring.bull){ state.bullseyes++; confettiBurst(12, false); }
+        updateScoreUI();
+        floatText(ring.label + ' +' + ring.pts, ring.bull ? '#EBC868' : '#F7F3E9');
+        setTimeout(() => { bow.busy = false; openMatch(termId); }, 700);
+        setTimeout(reload, 900);
+      } else {
+        const a2 = arrow.animate(
+          [{ transform: tf(cx, endY, 0.22), opacity: 1 }, { transform: tf(cx, endY - 40, 0.08), opacity: 0 }],
+          { duration: 260, fill: 'forwards' });
+        a2.onfinish = () => arrow.remove();
+        sfxWhoosh();
+        floatText('Missed \u2014 line up the crosshair', '#F29B85');
+        bow.busy = false;
+        setTimeout(reload, 450);
+      }
+    };
+  }
+
+  shootBtn.addEventListener('pointerdown', (e) => {
+    e.preventDefault(); e.stopPropagation();
+    try { shootBtn.setPointerCapture(e.pointerId); } catch(err){}
+    startDraw();
+  });
+  shootBtn.addEventListener('pointerup', (e) => { e.preventDefault(); releaseDraw(); });
+  shootBtn.addEventListener('pointercancel', releaseDraw);
+  shootBtn.addEventListener('lostpointercapture', releaseDraw);
+  shootBtn.addEventListener('contextmenu', (e) => e.preventDefault());
+  document.addEventListener('keydown', (e) => {
+    if (e.code === 'Space' && !hunt.classList.contains('yh-hidden')){
+      e.preventDefault();
+      if (!e.repeat) startDraw();
+    }
+  });
+  document.addEventListener('keyup', (e) => {
+    if (e.code === 'Space'){ e.preventDefault(); releaseDraw(); }
+  });
+
+  // ================= Main loop =================
+  function renderLoop(ts){
+    const dt = state._lastTs ? Math.min(80, ts - state._lastTs) : 16;
+    state._lastTs = ts;
+
+    if (bow.drawing) bow.draw = Math.min(1, bow.draw + dt/(bow.autoFire ? DRAW_MS*0.6 : DRAW_MS));
+    else bow.draw = Math.max(0, bow.draw - dt/120);
+    if (bow.autoFire && bow.draw >= AUTO_DRAW) loose();
+    updateBow();
+
+    const modalOpen = !modalWrap.classList.contains('yh-hidden');
+    if (state.spatial && state.currentId && !state.ended && !modalOpen){
+      const fw = field.clientWidth, fh = field.clientHeight;
+      const heading = orient.heading + dragOffset.heading;
+      const pitch = orient.pitch + dragOffset.pitch;
+      const t = TERMS.find(x => x.id === state.currentId);
+      const relAz = normalize180(t.azimuth - heading);
+      const relEl = t.elevation - pitch;
+      const inView = Math.abs(relAz) <= FOV_H + 6 && Math.abs(relEl) <= FOV_V + 6;
+      const x = fw*(0.5 + (relAz/FOV_H)*0.5), y = fh*(0.5 - (relEl/FOV_V)*0.5);
+      state.tgt = { x, y, inView };
+
+      if (inView && !markerEl.classList.contains('found')){
+        markerEl.style.left = x + 'px';
+        markerEl.style.top = y + 'px';
+        markerEl.classList.add('visible');
+      } else {
+        markerEl.classList.remove('visible');
+      }
+
+      const onTarget = inView && Math.hypot(fw/2 - x, fh/2 - y) <= TARGET_R;
+      if (onTarget && !state._wasLocked){ sfxLock(); buzz(20); }
+      state._wasLocked = onTarget;
+      markerEl.classList.toggle('locked', onTarget);
+
+      const adist = Math.hypot(relAz, relEl);
+      if (adist > FOV_H*0.8){
+        hintEl.classList.remove('yh-hidden-hint');
+        const chevron = hintEl.querySelector('.yh-chevron');
+        const label = hintEl.querySelector('.yh-hint-label');
+        let hx = 50, hy = 50, arrowCh = '➜';
+        if (Math.abs(relAz) > FOV_H){
+          hx = relAz > 0 ? 90 : 10;
+          arrowCh = relAz > 0 ? '➜' : '⟵';
+          hy = Math.min(70, Math.max(15, 50 - (relEl/FOV_V)*35));
+        } else {
+          hy = relEl > 0 ? 10 : 72;
+          arrowCh = relEl > 0 ? '⬆' : '⬇';
+          hx = Math.min(85, Math.max(15, 50 + (relAz/FOV_H)*35));
+        }
+        hintEl.style.left = (fw*hx/100) + 'px';
+        hintEl.style.top = (fh*hy/100) + 'px';
+        chevron.textContent = arrowCh;
+        label.textContent = adist < FOV_H*1.4 ? 'warmer' : 'keep turning';
+      } else {
+        hintEl.classList.add('yh-hidden-hint');
+      }
+    } else {
+      hintEl.classList.add('yh-hidden-hint');
+    }
+    rafHandle = requestAnimationFrame(renderLoop);
+  }
+
+  // ================= Questions =================
+  function buildMCQOptions(termId, isBoss){
+    const t = TERMS.find(x => x.id === termId);
+    const n = isBoss ? 5 : 3;
+    const distractors = TERMS.filter(x => x.id !== termId).sort(() => Math.random()-0.5).slice(0, n);
+    const options = [t, ...distractors].sort(() => Math.random()-0.5);
+    modalOpts.innerHTML = '';
+    options.forEach(opt => {
+      const btn = document.createElement('button');
+      btn.className = 'yh-opt';
+      btn.textContent = opt.desc;
+      btn.dataset.correct = (opt.id === termId) ? '1' : '0';
+      btn.addEventListener('click', () => handleAnswer(termId, opt.id === termId, btn));
+      modalOpts.appendChild(btn);
+    });
+  }
+
+  function buildTFRound(termId){
+    const t = TERMS.find(x => x.id === termId);
+    const makeTrue = Math.random() < 0.5;
+    let shownDesc, isTrue;
+    if (makeTrue){ shownDesc = t.desc; isTrue = true; }
+    else {
+      const pool = TERMS.filter(x => x.id !== termId);
+      shownDesc = pool[Math.floor(Math.random()*pool.length)].desc;
+      isTrue = false;
+    }
+    modalOpts.innerHTML =
+      '<div style="font-size:14.5px; line-height:1.4; background:#F5F1E4; border-radius:12px; padding:12px 14px; margin-bottom:12px; font-style:italic;">\u201c' + shownDesc + '\u201d</div>' +
+      '<div class="yh-tf-row"><button class="yh-opt yh-tf-btn" id="yh-tf-true">True</button><button class="yh-opt yh-tf-btn" id="yh-tf-false">False</button></div>';
+    $('yh-tf-true').addEventListener('click', () => handleAnswer(termId, isTrue === true, $('yh-tf-true')));
+    $('yh-tf-false').addEventListener('click', () => handleAnswer(termId, isTrue === false, $('yh-tf-false')));
+  }
+
+  function openMatch(termId){
+    if (state.found[termId] || state.ended) return;
+    if (!modalWrap.classList.contains('yh-hidden')) return;
+    state.activeTerm = termId;
+    markerEl.classList.remove('locked');
+    const t = TERMS.find(x => x.id === termId);
+    const isBoss = t.num === 15;
+    const isTF = !isBoss && (t.num % 4 === 0);
+    state.qType = isBoss ? 'boss' : (isTF ? 'tf' : 'mcq');
+    state.hintUsed = false;
+    feedback.textContent = '';
+    tipBox.classList.add('yh-hidden'); tipBox.textContent = '';
+    nextBtn.classList.add('yh-hidden'); nextBtn.disabled = true;
+    if (nextCountdownTimer){ clearInterval(nextCountdownTimer); nextCountdownTimer = null; }
+    pendingAdvance = null;
+    modalCard.classList.toggle('boss', isBoss);
+    modalTerm.innerHTML = (isBoss ? '<span class="yh-boss-chip">\ud83c\udfc6 Final Challenge</span><br>' : '') + t.term;
+    if (state.qType === 'tf'){
+      modalPrompt.textContent = 'True or False \u2014 does this description match the target?';
+      hintBtn.style.display = 'none';
+      buildTFRound(termId);
+    } else {
+      modalPrompt.textContent = isBoss ? 'Six options this time \u2014 which description matches?' : 'Which description matches this target?';
+      hintBtn.style.display = 'inline-flex';
+      hintBtn.disabled = false;
+      buildMCQOptions(termId, isBoss);
+    }
+    modalWrap.classList.remove('yh-hidden');
+  }
+
+  nextBtn.addEventListener('click', () => {
+    if (nextCountdownTimer){ clearInterval(nextCountdownTimer); nextCountdownTimer = null; }
+    if (pendingAdvance){ const fn = pendingAdvance; pendingAdvance = null; fn(); }
+  });
+
+  hintBtn.addEventListener('click', () => {
+    if (state.hintUsed || state.qType === 'tf') return;
+    const eligible = Array.from(modalOpts.querySelectorAll('.yh-opt'))
+      .filter(b => !b.classList.contains('eliminated') && b.dataset.correct !== '1');
+    if (!eligible.length) return;
+    const pick = eligible[Math.floor(Math.random()*eligible.length)];
+    pick.classList.add('eliminated');
+    state.hintUsed = true;
+    state.score = Math.max(0, state.score - 15);
+    scoreEl.textContent = state.score;
+    hintBtn.disabled = true;
+    sfxHint(); buzz(15);
+  });
+
+  function updateScoreUI(){
+    scoreEl.textContent = state.score;
+    streakEl.textContent = state.streak;
+    streakPill.classList.toggle('hot', state.streak >= 2);
+  }
+
+  function handleAnswer(termId, isCorrect, btnEl){
+    state.attempts[termId] = (state.attempts[termId]||0) + 1;
+    const allOpts = modalOpts.querySelectorAll('.yh-opt');
+    allOpts.forEach(b => b.style.pointerEvents = 'none');
+    if (isCorrect){
+      btnEl.classList.add('correct');
+      sfxCorrect(); buzz([20,40,20]);
+      const t = TERMS.find(x=>x.id===termId);
+      feedback.textContent = 'Matched! ' + t.term;
+      feedback.style.color = 'var(--sage)';
+      tipBox.classList.remove('yh-hidden');
+      tipBox.innerHTML = '<b>Why:</b> ' + t.tip;
+      state.found[termId] = true;
+      markerEl.classList.add('found');
+      confettiBurst(18, false);
+
+      const attemptsUsed = state.attempts[termId];
+      const pts = Math.max(20, 100 - (attemptsUsed-1)*20 - (state.hintUsed ? 15 : 0));
+      state.score += pts;
+      if (attemptsUsed === 1 && !state.hintUsed){ state.streak++; } else { state.streak = 0; }
+      updateScoreUI();
+
+      pendingAdvance = () => {
+        modalWrap.classList.add('yh-hidden');
+        nextBtn.classList.add('yh-hidden');
+        updateHUD();
+        state.queueIdx++;
+        if (state.queueIdx < state.queue.length){
+          spawnMarker(state.queue[state.queueIdx]);
+        } else {
+          endHunt();
+        }
+      };
+      nextBtn.classList.remove('yh-hidden');
+      nextBtn.disabled = true;
+      let secondsLeft = 4;
+      nextBtn.textContent = 'Next in ' + secondsLeft + '\u2026';
+      nextCountdownTimer = setInterval(() => {
+        secondsLeft--;
+        if (secondsLeft > 0){
+          nextBtn.textContent = 'Next in ' + secondsLeft + '\u2026';
+        } else {
+          clearInterval(nextCountdownTimer);
+          nextCountdownTimer = null;
+          nextBtn.textContent = 'Next \u2192';
+          nextBtn.disabled = false;
+        }
+      }, 1000);
+    } else {
+      btnEl.classList.add('wrong');
+      sfxWrong(); buzz(80);
+      feedback.textContent = 'Not quite \u2014 try again';
+      feedback.style.color = 'var(--coral)';
+      state.streak = 0;
+      updateScoreUI();
+      setTimeout(() => {
+        if (state.qType === 'tf'){
+          feedback.textContent = '';
+          buildTFRound(termId);
+        } else {
+          allOpts.forEach(b => { if (!b.classList.contains('eliminated')) b.style.pointerEvents = 'auto'; });
+          btnEl.style.pointerEvents = 'none';
+        }
+      }, 600);
+    }
+  }
+
+  function updateHUD(){
+    const foundN = Object.keys(state.found).length;
+    foundCountEl.textContent = foundN;
+    progressFill.style.width = Math.round((foundN/TERMS.length)*100) + '%';
+    updateScoreUI();
+  }
+
+  function startTimer(){
+    state.timerHandle = setInterval(() => {
+      state.timeLeft--;
+      const m = Math.floor(state.timeLeft/60), s = state.timeLeft%60;
+      timerEl.textContent = m + ':' + String(s).padStart(2,'0');
+      if (state.timeLeft <= 60) timerEl.classList.add('warn');
+      if (state.timeLeft <= 0) endHunt();
+    }, 1000);
+  }
+
+  function endHunt(){
+    if (state.ended) return;
+    state.ended = true;
+    clearInterval(state.timerHandle);
+    cleanupSensors();
+    Music.stop();
+    if (nextCountdownTimer){ clearInterval(nextCountdownTimer); nextCountdownTimer = null; }
+    pendingAdvance = null;
+    nextBtn.classList.add('yh-hidden');
+    modalWrap.classList.add('yh-hidden');
+    hunt.classList.add('yh-hidden');
+    summary.classList.remove('yh-hidden');
+    const foundN = Object.keys(state.found).length;
+    $('yh-final-score').textContent = foundN + ' / ' + TERMS.length;
+    $('yh-final-points').textContent = state.score + ' pts \u00b7 ' + state.bullseyes + ' bullseye' + (state.bullseyes === 1 ? '' : 's');
+    sfxComplete(); buzz([30,50,30,50,60]);
+    confettiBurst(foundN === TERMS.length ? 60 : 26, foundN === TERMS.length);
+    const list = $('yh-gallery-list');
+    list.innerHTML = '';
+    TERMS.forEach(t => {
+      const ok = !!state.found[t.id];
+      const row = document.createElement('div');
+      row.className = 'yh-gallery-item ' + (ok ? 'ok' : 'miss');
+      row.innerHTML = '<div class="yh-mark">' + (ok ? '\u2713' : '\u2717') + '</div>' +
+        '<div class="yh-txt"><b>' + t.term + '</b><span>' + t.desc + '</span></div>';
+      list.appendChild(row);
+    });
+  }
+
+  function showNotice(msg){
+    const old = $('yh-motion-note'); if (old) old.remove();
+    const notice = document.createElement('div');
+    notice.id = 'yh-motion-note';
+    notice.textContent = msg;
+    hunt.appendChild(notice);
+    setTimeout(() => notice.remove(), 6000);
+  }
+
+  async function beginHunt(useCamera){
+    ensureAudio();
+    Music.start(audioCtx, muted);
+    let motionGranted = false;
+    if (useCamera){
+      motionGranted = await setupOrientation(); // ask while still inside the tap gesture
+      try {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          throw new Error('getUserMedia not available in this browser context');
+        }
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
+        video.srcObject = stream;
+        video.classList.remove('yh-hidden');
+        noiseBg.classList.add('yh-hidden');
+      } catch (e) {
+        noiseBg.classList.remove('yh-hidden');
+        showNotice('Camera unavailable (' + (e.name || e.message || 'unknown error') + '). Playing without camera background.');
+      }
+    }
+
+    intro.classList.add('yh-hidden');
+    hunt.classList.remove('yh-hidden');
+
+    state.spatial = true;
+    initHuntQueue();
+    if (!rafHandle) rafHandle = requestAnimationFrame(renderLoop);
+    if (motionGranted){
+      showNotice('Turn, walk, or drag the screen to line up a target, then tap Shoot.');
+    } else {
+      showNotice('Drag the screen to line up a target, then tap Shoot.');
+    }
+    updateHUD();
+    startTimer();
+  }
+
+  function cleanupSensors(){
+    if (rafHandle){ cancelAnimationFrame(rafHandle); rafHandle = null; }
+    window.removeEventListener('deviceorientation', onOrientation, true);
+    window.removeEventListener('deviceorientationabsolute', onOrientation, true);
+    orient = { heading: 0, pitch: 0, baselineAlpha: null, baselineBeta: null, ready: false };
+    dragOffset = { heading: 0, pitch: 0 };
+    bow = { drawing:false, draw:0, loaded:true, busy:false, autoFire:false };
+    shootBtn.classList.remove('drawing');
+    updateBow();
+  }
+
+  $('yh-start-cam').addEventListener('click', () => beginHunt(true));
+  $('yh-start-nocam').addEventListener('click', () => beginHunt(false));
+  $('yh-recal').addEventListener('click', recalibrate);
+  $('yh-mute').addEventListener('click', () => {
+    muted = !muted;
+    Music.setMuted(muted);
+    $('yh-mute').textContent = muted ? '\ud83d\udd07' : '\ud83d\udd0a';
+  });
+  $('yh-replay').addEventListener('click', () => {
+    cleanupSensors();
+    state = freshState();
+    updateScoreUI();
+    field.querySelectorAll('.yh-flying, .yh-float').forEach(el => el.remove());
+    faceEl.querySelectorAll('.yh-stuck').forEach(el => el.remove());
+    markerEl.classList.remove('visible', 'locked', 'found');
+    reticleRing.style.strokeDashoffset = String(RING_CIRC);
+    timerEl.classList.remove('warn');
+    timerEl.textContent = '10:00';
+    summary.classList.add('yh-hidden');
+    intro.classList.remove('yh-hidden');
+    const track = video.srcObject;
+    if (track) { track.getTracks().forEach(tr => tr.stop()); video.srcObject = null; video.classList.add('yh-hidden'); }
+    noiseBg.classList.remove('yh-hidden');
+  });
+
+  updateBow();
+})();
+</script>
+</body>
+</html>
